@@ -26,12 +26,13 @@ class GraphApiClient
     const VERSION = 'v6.0';
     const MAX_GET_COUNT = 50;
     const MAX_POST_COUNT = 10;
+    const RETRY = 2;
 
     public function __construct($accessToken)
     {
         $this->facebookObj = new Facebook([
-            'app_id' => getenv("FACEBOOK_APP_ID"),
-            'app_secret' => getenv("FACEBOOK_APP_SECRET"),
+            'app_id' => getenv("FACEBOOK_APP_ID", "2709330685824206"),
+            'app_secret' => getenv("FACEBOOK_APP_SECRET", "4d249b347fae3134e4137f7a956f1124"),
             'default_graph_version' => getenv("FACEBOOK_VERSION", static::VERSION),
             'http_client_handler' => null,   //定义请求方式
         ]);
@@ -88,16 +89,17 @@ class GraphApiClient
      * @param string $method
      * @return array
      */
-    public function batchRequest($batchQuerys, $method)
+    public function batchRequest($batchQuerys, $method, $retryTimes=0)
     {
         $result = [];
-        if($batchQuerys){
+        if($batchQuerys && $retryTimes <= static::RETRY){
+            $retryQuerys = [];
             $index = 0;
-            $batch = [];
+            $batchs = [];
             $i = 0;
             if($method == 'GET'){
                 foreach($batchQuerys as $key => $query){
-                    $batch[$index][$key] = $this->facebookObj->request('GET',$query);
+                    $batchs[$index][$key] = $this->facebookObj->request('GET',$query);
                     if ((($i + 1) % static::MAX_GET_COUNT) == 0) {
                         $index ++;
                     }
@@ -105,12 +107,27 @@ class GraphApiClient
                 }
             }else{
                 foreach($batchQuerys as $key => $query){
-                    $batch[$index][$key] = $this->facebookObj->request('GET',$query);
-                    if ((($i + 1) % static::MAX_GET_COUNT) == 0) {
+                    $batchs[$index][$key] = $this->facebookObj->request('POST',$query);
+                    if ((($i + 1) % static::MAX_POST_COUNT) == 0) {
                         $index ++;
                     }
                     $i++;
                 }
+            }
+            foreach($batchs as $bv){
+                $responses = $this->facebookObj->sendBatchRequest($bv);
+                foreach($responses->getResponse as $key => $v){
+                    $body = $v->getDecodedBody();
+                    if(empty($body['error'])){
+                        $result[$key] = $body;
+                    }else{
+                        $retryQuerys[$key] = $batchQuerys[$key];
+                    }
+                }
+            }
+            if($retryQuerys){
+                $retryTimes++;
+                $this->batchRequest($retryQuerys, $method, $retryTimes);
             }
         }
         return $result;
