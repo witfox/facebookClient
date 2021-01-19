@@ -1,0 +1,22 @@
+{
+    "name": "chenye/facebook-client",
+    "description": "facebook graph api client",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "chenye",
+            "email": "1263057565@qq.com"
+        }
+    ],
+    "require": {
+        "facebook/graph-sdk": "~5.0",
+        "facebook/php-ads-sdk": "~5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "FacebookClient\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}

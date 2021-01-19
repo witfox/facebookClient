@@ -1,0 +1,13 @@
+/.idea
+/Homestead.json
+/Homestead.yaml
+/.env
+/vendor
+/.buildpath
+/.project
+/.settings
+/storage
+/public/ErrorFiles
+/public/u.php
+/public/coverage
+/.scannerwork
