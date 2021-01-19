@@ -1,6 +1,6 @@
 <?php
 
-use FacebookClient\Client\Test;
+use FacebookClient\Tests\Test;
 
 require_once "./vendor/autoload.php";
 

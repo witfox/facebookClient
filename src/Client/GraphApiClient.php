@@ -19,21 +19,17 @@ class GraphApiClient
      *
      * @var boolean
      */
-    protected $isPageToken = false;
-
     protected $accessToken;
-
-    const VERSION = 'v6.0';
     const MAX_GET_COUNT = 50;
     const MAX_POST_COUNT = 10;
     const RETRY = 2;
 
-    public function __construct($accessToken)
+    public function __construct($appId=null, $appSecret=null, $version='v6.0', $accessToken= null)
     {
         $this->facebookObj = new Facebook([
-            'app_id' => getenv("FACEBOOK_APP_ID", "2709330685824206"),
-            'app_secret' => getenv("FACEBOOK_APP_SECRET", "4d249b347fae3134e4137f7a956f1124"),
-            'default_graph_version' => getenv("FACEBOOK_VERSION", static::VERSION),
+            'app_id' => $appId,
+            'app_secret' => $appSecret,
+            'default_graph_version' => $version,
             'http_client_handler' => null,   //定义请求方式
         ]);
         $this->accessToken = $accessToken;
@@ -89,7 +85,7 @@ class GraphApiClient
      * @param string $method
      * @return array
      */
-    public function batchRequest($batchQuerys, $method, $retryTimes=0)
+    public function batchRequest($batchQuerys, $method, $result,$retryTimes=0)
     {
         $result = [];
         if($batchQuerys && $retryTimes <= static::RETRY){
@@ -127,7 +123,7 @@ class GraphApiClient
             }
             if($retryQuerys){
                 $retryTimes++;
-                $this->batchRequest($retryQuerys, $method, $retryTimes);
+                $this->batchRequest($retryQuerys, $method, $result,$retryTimes);
             }
         }
         return $result;
