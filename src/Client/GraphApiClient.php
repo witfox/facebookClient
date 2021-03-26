@@ -24,12 +24,12 @@ class GraphApiClient
     const MAX_POST_COUNT = 10;
     const RETRY = 2;
 
-    public function __construct($appId=null, $appSecret=null, $version='v6.0', $accessToken= null)
+    public function __construct($accessToken= null)
     {
         $this->facebookObj = new Facebook([
-            'app_id' => $appId,
-            'app_secret' => $appSecret,
-            'default_graph_version' => $version,
+            'app_id' => env("FB_APP_ID"),
+            'app_secret' => env("FB_APP_SECRET"),
+            'default_graph_version' => env("FB_VERSION", "v9.0"),
             'http_client_handler' => null,   //定义请求方式
         ]);
         $this->accessToken = $accessToken;
@@ -44,11 +44,11 @@ class GraphApiClient
     {
         return $this->request($subject, $params,"POST");
     }
-    public function batchGet($batchQuerys = [])
+    public function batchGet($batchQuerys = [], $result)
     {
         return $this->batchRequest($batchQuerys, 'GET');
     }
-    public function batchPost($batchQuerys = [])
+    public function batchPost($batchQuerys = [], $result)
     {
         return $this->batchRequest($batchQuerys, 'POST');
     }
@@ -85,9 +85,8 @@ class GraphApiClient
      * @param string $method
      * @return array
      */
-    public function batchRequest($batchQuerys, $method, $result,$retryTimes=0)
+    public function batchRequest($batchQuerys, $method, $result=[], $retryTimes=0)
     {
-        $result = [];
         if($batchQuerys && $retryTimes <= static::RETRY){
             $retryQuerys = [];
             $index = 0;
